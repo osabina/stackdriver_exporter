@@ -383,12 +383,17 @@ func (c *MonitoringCollector) reportTimeSeriesMetrics(
 				continue
 			}
 		}
+		deltaIsCounter := DeltaIsActuallyCounter(timeSeries.Metric.Type)
 
 		switch timeSeries.MetricKind {
 		case "GAUGE":
 			metricValueType = prometheus.GaugeValue
 		case "DELTA":
-			metricValueType = prometheus.GaugeValue
+			if deltaIsCounter {
+				metricValueType = prometheus.CounterValue
+			} else {
+				metricValueType = prometheus.GaugeValue
+			}
 		case "CUMULATIVE":
 			metricValueType = prometheus.CounterValue
 		default:
@@ -402,8 +407,27 @@ func (c *MonitoringCollector) reportTimeSeriesMetrics(
 				metricValue = 1
 			}
 		case "INT64":
-			metricValue = float64(*newestTSPoint.Value.Int64Value)
+			if deltaIsCounter {
+				cacheKey := GetCacheKey(timeSeries.Metric.Type, labelKeys, labelValues)
+				prevValue := GetCounterValue(cacheKey)
+				curValue := float64(*newestTSPoint.Value.Int64Value)
+				is_new := SetCounterValue(cacheKey, curValue+prevValue, newestEndTime)
+
+				if is_new {
+					metricValue = curValue + prevValue
+				} else {
+					metricValue = prevValue
+				}
+				level.Info(c.logger).Log("msg", "deltaInt64IsCounter", "metric", timeSeries.Metric.Type, "labels",
+					SerializeLabels(labelKeys, labelValues), "cacheKey", cacheKey,
+					"newestEndTime", newestEndTime, "prevValue", prevValue, "curValue", curValue,
+					"metricValue", metricValue, "isNewValue", is_new)
+			} else {
+				metricValue = float64(*newestTSPoint.Value.Int64Value)
+				level.Info(c.logger).Log("msg", "deltaInt64IsNotCounter", "metric", timeSeries.Metric.Type, "value", metricValue)
+			}
 		case "DOUBLE":
+			// TODO: Figure out if we should be doing what we did above here as well.  Probably.
 			metricValue = *newestTSPoint.Value.DoubleValue
 		case "DISTRIBUTION":
 			dist := newestTSPoint.Value.DistributionValue

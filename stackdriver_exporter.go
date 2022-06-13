@@ -101,6 +101,9 @@ var (
 
 	monitoringMetricsExtraFilter = kingpin.Flag(
 		"monitoring.filters", "Filters. i.e: pubsub.googleapis.com/subscription:resource.labels.subscription_id=monitoring.regex.full_match(\"my-subs-prefix.*\")").Strings()
+
+	monitoringMetricsCounterSubstring = kingpin.Flag(
+		"monitoring.counter-substring", "Comma separated metric substrings that should be treated as counters even if DELTA type.").Default("").String()
 )
 
 func init() {
@@ -257,6 +260,9 @@ func main() {
 	projectIDs := strings.Split(*projectID, ",")
 	metricsTypePrefixes := strings.Split(*monitoringMetricsTypePrefixes, ",")
 	metricExtraFilters := parseMetricExtraFilters()
+
+	collectors.SetCounterSentinelStrings(strings.Split(*monitoringMetricsCounterSubstring, ","))
+
 	handler := newHandler(projectIDs, metricsTypePrefixes, metricExtraFilters, monitoringService, logger)
 
 	http.Handle(*metricsPath, promhttp.InstrumentMetricHandler(prometheus.DefaultRegisterer, handler))
