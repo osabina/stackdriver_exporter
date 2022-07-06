@@ -427,8 +427,27 @@ func (c *MonitoringCollector) reportTimeSeriesMetrics(
 				level.Info(c.logger).Log("msg", "deltaInt64IsNotCounter", "metric", timeSeries.Metric.Type, "value", metricValue)
 			}
 		case "DOUBLE":
-			// TODO: Figure out if we should be doing what we did above here as well.  Probably.
-			metricValue = *newestTSPoint.Value.DoubleValue
+			if deltaIsCounter {
+				cacheKey := GetCacheKey(timeSeries.Metric.Type, labelKeys, labelValues)
+				prevValue := GetCounterValue(cacheKey)
+				// The DoubleValue should already be a float64 but cast here to emphasize we expect
+				// to only handle float64s as values in the DELTA cache.
+				curValue := float64(*newestTSPoint.Value.DoubleValue)
+				is_new := SetCounterValue(cacheKey, curValue+prevValue, newestEndTime)
+
+				if is_new {
+					metricValue = curValue + prevValue
+				} else {
+					metricValue = prevValue
+				}
+				level.Info(c.logger).Log("msg", "deltaDoubleIsCounter", "metric", timeSeries.Metric.Type, "labels",
+					SerializeLabels(labelKeys, labelValues), "cacheKey", cacheKey,
+					"newestEndTime", newestEndTime, "prevValue", prevValue, "curValue", curValue,
+					"metricValue", metricValue, "isNewValue", is_new)
+			} else {
+				metricValue = float64(*newestTSPoint.Value.DoubleValue)
+				level.Info(c.logger).Log("msg", "deltaDoubleIsNotCounter", "metric", timeSeries.Metric.Type, "value", metricValue)
+			}
 		case "DISTRIBUTION":
 			dist := newestTSPoint.Value.DistributionValue
 			buckets, err := c.generateHistogramBuckets(dist)
