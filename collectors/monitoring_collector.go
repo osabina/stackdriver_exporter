@@ -418,13 +418,13 @@ func (c *MonitoringCollector) reportTimeSeriesMetrics(
 				} else {
 					metricValue = prevValue
 				}
-				level.Info(c.logger).Log("msg", "deltaInt64IsCounter", "metric", timeSeries.Metric.Type, "labels",
+				level.Debug(c.logger).Log("msg", "deltaInt64IsCounter", "metric", timeSeries.Metric.Type, "labels",
 					SerializeLabels(labelKeys, labelValues), "cacheKey", cacheKey,
 					"newestEndTime", newestEndTime, "prevValue", prevValue, "curValue", curValue,
 					"metricValue", metricValue, "isNewValue", is_new)
 			} else {
 				metricValue = float64(*newestTSPoint.Value.Int64Value)
-				level.Info(c.logger).Log("msg", "deltaInt64IsNotCounter", "metric", timeSeries.Metric.Type, "value", metricValue)
+				level.Debug(c.logger).Log("msg", "deltaInt64IsNotCounter", "metric", timeSeries.Metric.Type, "value", metricValue)
 			}
 		case "DOUBLE":
 			if deltaIsCounter {
@@ -440,13 +440,13 @@ func (c *MonitoringCollector) reportTimeSeriesMetrics(
 				} else {
 					metricValue = prevValue
 				}
-				level.Info(c.logger).Log("msg", "deltaDoubleIsCounter", "metric", timeSeries.Metric.Type, "labels",
+				level.Debug(c.logger).Log("msg", "deltaDoubleIsCounter", "metric", timeSeries.Metric.Type, "labels",
 					SerializeLabels(labelKeys, labelValues), "cacheKey", cacheKey,
 					"newestEndTime", newestEndTime, "prevValue", prevValue, "curValue", curValue,
 					"metricValue", metricValue, "isNewValue", is_new)
 			} else {
 				metricValue = float64(*newestTSPoint.Value.DoubleValue)
-				level.Info(c.logger).Log("msg", "deltaDoubleIsNotCounter", "metric", timeSeries.Metric.Type, "value", metricValue)
+				level.Debug(c.logger).Log("msg", "deltaDoubleIsNotCounter", "metric", timeSeries.Metric.Type, "value", metricValue)
 			}
 		case "DISTRIBUTION":
 			dist := newestTSPoint.Value.DistributionValue
