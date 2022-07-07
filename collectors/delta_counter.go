@@ -34,6 +34,8 @@ func SetCounterSentinelStrings(strs []string) {
 	counterSentinelStrings = strs
 }
 
+// DeltaIsActuallyCounter returns true if a delta metric should actually be a counter
+// based off a match from the monitoring.counter-substring flag.
 func DeltaIsActuallyCounter(fq_name string) bool {
 	// For now we split on _ to get the _ separated words as we have found the word
 	// "count" in the metric name to be indicative of this delta-as-counter situation, but
@@ -49,6 +51,7 @@ func DeltaIsActuallyCounter(fq_name string) bool {
 	return false
 }
 
+// GetCounterValue retrieves the previously stored value for a metric.
 func GetCounterValue(key uint64) float64 {
 	if entry, ok := counterCache[key]; ok {
 		return entry.val
@@ -58,6 +61,7 @@ func GetCounterValue(key uint64) float64 {
 	return 0
 }
 
+// SetCounterValue sets the current value for a metric.
 func SetCounterValue(key uint64, val float64, ts time.Time) bool {
 	if entry, ok := counterCache[key]; ok {
 		if ts.After(entry.ts) {
@@ -70,6 +74,7 @@ func SetCounterValue(key uint64, val float64, ts time.Time) bool {
 	return false
 }
 
+// SerializeLabels returns a sorted delimiter-separated list of label key-values.
 func SerializeLabels(keys []string, values []string) string {
 	labels := make(map[string]string)
 	labelstrs := []string{}
@@ -84,6 +89,7 @@ func SerializeLabels(keys []string, values []string) string {
 	return strings.Join(labelstrs, "|")
 }
 
+// GetCacheKey returns the hash value of the cache key, comprised of the metric name and associated labels.
 func GetCacheKey(fq_name string, keys []string, values []string) uint64 {
 	ptextkey := fq_name + "-" + SerializeLabels(keys, values)
 	h := hashNew()
