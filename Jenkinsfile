@@ -19,7 +19,7 @@ node ("docker") {
 if ( isBranch("main") ) {
     stage( "Deploy" ) {
         withDocker {
-                sh "script/dockerbuild.sh push"
+                sh "scripts/dockerbuild.sh push"
             }
         }
 }
