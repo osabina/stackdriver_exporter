@@ -14,12 +14,12 @@ node ("docker") {
         throw e
       }
     }
-}
 
-if ( isBranch("main") ) {
-    stage( "Deploy" ) {
-        withDocker {
-                sh "scripts/dockerbuild.sh push"
+    if ( isBranch("main") ) {
+        stage( "Deploy" ) {
+            withDocker {
+                    sh "scripts/dockerbuild.sh push"
             }
         }
+    }
 }
