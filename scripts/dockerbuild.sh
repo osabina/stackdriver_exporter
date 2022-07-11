@@ -14,7 +14,7 @@ fi
 
 build() {
     echo "Building $IMAGE"
-    docker -t "$IMAGE" "$ROOT"
+    docker build -t "$IMAGE" "$ROOT"
 }
 
 push() {
