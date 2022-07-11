@@ -1,13 +1,14 @@
-ARG ARCH="amd64"
-ARG OS="linux"
-FROM quay.io/prometheus/busybox-${OS}-${ARCH}:latest
-LABEL maintainer="The Prometheus Authors <prometheus-developers@googlegroups.com>"
+FROM us.gcr.io/rsg-base-prod/golang:1.17.11 AS builder
 
 ARG ARCH="amd64"
 ARG OS="linux"
-COPY .build/${OS}-${ARCH}/stackdriver_exporter /bin/stackdriver_exporter
-COPY LICENSE /LICENSE
 
-USER       nobody
+COPY . /src
+
+RUN cd /src && go build -mod=vendor -o /tmp/stackdriver_exporter
+
+FROM gcr.io/distroless/base
+
+COPY --from=builder /tmp/stackdriver_exporter /usr/bin/
+
 ENTRYPOINT ["/bin/stackdriver_exporter"]
-EXPOSE     9255
