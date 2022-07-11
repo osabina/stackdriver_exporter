@@ -5,7 +5,7 @@ ARG OS="linux"
 
 COPY . /src
 
-RUN cd /src && go build -mod=vendor -o /tmp/stackdriver_exporter
+RUN cd /src && go build -o /tmp/stackdriver_exporter
 
 FROM gcr.io/distroless/base
 
