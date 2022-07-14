@@ -26,30 +26,8 @@ type CacheEntry struct {
 }
 
 var (
-	counterCache           = make(map[uint64]*CacheEntry)
-	counterSentinelStrings = []string{""}
+	counterCache = make(map[uint64]*CacheEntry)
 )
-
-func SetCounterSentinelStrings(strs []string) {
-	counterSentinelStrings = strs
-}
-
-// DeltaIsActuallyCounter returns true if a delta metric should actually be a counter
-// based off a match from the monitoring.counter-substring flag.
-func DeltaIsActuallyCounter(fq_name string) bool {
-	// For now we split on _ to get the _ separated words as we have found the word
-	// "count" in the metric name to be indicative of this delta-as-counter situation, but
-	// we may eventually want to simply look for a substring or RE for flexibility/specificity.
-	words := strings.Split(fq_name, "_")
-	for _, sentinel := range counterSentinelStrings {
-		for _, value := range words {
-			if value == sentinel {
-				return true
-			}
-		}
-	}
-	return false
-}
 
 // GetCounterValue retrieves the previously stored value for a metric.
 func GetCounterValue(key uint64) float64 {

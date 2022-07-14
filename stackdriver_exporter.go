@@ -102,8 +102,9 @@ var (
 	monitoringMetricsExtraFilter = kingpin.Flag(
 		"monitoring.filters", "Filters. i.e: pubsub.googleapis.com/subscription:resource.labels.subscription_id=monitoring.regex.full_match(\"my-subs-prefix.*\")").Strings()
 
-	monitoringMetricsCounterSubstring = kingpin.Flag(
-		"monitoring.counter-substring", "Comma separated metric substrings that should be treated as counters even if DELTA type.").Default("").String()
+	monitoringMetricsDeltaToCounter = kingpin.Flag(
+		"monitoring.delta-to-counter", "Treat all metrics of kind DELTA as counters.",
+	).Default("false").Bool()
 )
 
 func init() {
@@ -194,6 +195,7 @@ func (h *handler) innerHandler(filters map[string]bool) http.Handler {
 			IngestDelay:           *monitoringMetricsIngestDelay,
 			FillMissingLabels:     *collectorFillMissingLabels,
 			DropDelegatedProjects: *monitoringDropDelegatedProjects,
+			DeltaToCounter:        *monitoringMetricsDeltaToCounter,
 		}, h.logger)
 		if err != nil {
 			level.Error(h.logger).Log("err", err)
@@ -260,9 +262,6 @@ func main() {
 	projectIDs := strings.Split(*projectID, ",")
 	metricsTypePrefixes := strings.Split(*monitoringMetricsTypePrefixes, ",")
 	metricExtraFilters := parseMetricExtraFilters()
-
-	collectors.SetCounterSentinelStrings(strings.Split(*monitoringMetricsCounterSubstring, ","))
-
 	handler := newHandler(projectIDs, metricsTypePrefixes, metricExtraFilters, monitoringService, logger)
 
 	http.Handle(*metricsPath, promhttp.InstrumentMetricHandler(prometheus.DefaultRegisterer, handler))
