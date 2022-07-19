@@ -51,7 +51,7 @@ type MonitoringCollector struct {
 	lastScrapeDurationSecondsMetric prometheus.Gauge
 	collectorFillMissingLabels      bool
 	monitoringDropDelegatedProjects bool
-	deltaToCounter                  bool
+	aggregateDeltas                 bool
 	logger                          log.Logger
 }
 
@@ -74,8 +74,8 @@ type MonitoringCollectorOptions struct {
 	FillMissingLabels bool
 	// DropDelegatedProjects decides if only metrics matching the collector's projectID should be retrieved.
 	DropDelegatedProjects bool
-	// DeltaToCounter decides if all metrics of kind DELTA should be treated as counters.
-	DeltaToCounter bool
+	// AggregateDeltas decides if all metrics of kind DELTA should be treated as counters.
+	AggregateDeltas bool
 }
 
 func NewMonitoringCollector(projectID string, monitoringService *monitoring.Service, opts MonitoringCollectorOptions, logger log.Logger) (*MonitoringCollector, error) {
@@ -155,7 +155,7 @@ func NewMonitoringCollector(projectID string, monitoringService *monitoring.Serv
 		lastScrapeDurationSecondsMetric: lastScrapeDurationSecondsMetric,
 		collectorFillMissingLabels:      opts.FillMissingLabels,
 		monitoringDropDelegatedProjects: opts.DropDelegatedProjects,
-		deltaToCounter:                  opts.DeltaToCounter,
+		aggregateDeltas:                 opts.AggregateDeltas,
 		logger:                          logger,
 	}
 
@@ -392,7 +392,7 @@ func (c *MonitoringCollector) reportTimeSeriesMetrics(
 		case "GAUGE":
 			metricValueType = prometheus.GaugeValue
 		case "DELTA":
-			if c.deltaToCounter {
+			if c.aggregateDeltas {
 				metricValueType = prometheus.CounterValue
 			} else {
 				metricValueType = prometheus.GaugeValue
@@ -410,7 +410,7 @@ func (c *MonitoringCollector) reportTimeSeriesMetrics(
 				metricValue = 1
 			}
 		case "INT64":
-			if timeSeries.MetricKind == "DELTA" && c.deltaToCounter {
+			if timeSeries.MetricKind == "DELTA" && c.aggregateDeltas {
 				cacheKey := GetCacheKey(timeSeries.Metric.Type, labelKeys, labelValues)
 				prevValue := GetCounterValue(cacheKey)
 				curValue := float64(*newestTSPoint.Value.Int64Value)
@@ -430,7 +430,7 @@ func (c *MonitoringCollector) reportTimeSeriesMetrics(
 				level.Debug(c.logger).Log("msg", "deltaInt64IsNotCounter", "metric", timeSeries.Metric.Type, "value", metricValue)
 			}
 		case "DOUBLE":
-			if timeSeries.MetricKind == "DELTA" && c.deltaToCounter {
+			if timeSeries.MetricKind == "DELTA" && c.aggregateDeltas {
 				cacheKey := GetCacheKey(timeSeries.Metric.Type, labelKeys, labelValues)
 				prevValue := GetCounterValue(cacheKey)
 				// The DoubleValue should already be a float64 but cast here to emphasize we expect

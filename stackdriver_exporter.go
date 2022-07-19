@@ -102,8 +102,8 @@ var (
 	monitoringMetricsExtraFilter = kingpin.Flag(
 		"monitoring.filters", "Filters. i.e: pubsub.googleapis.com/subscription:resource.labels.subscription_id=monitoring.regex.full_match(\"my-subs-prefix.*\")").Strings()
 
-	monitoringMetricsDeltaToCounter = kingpin.Flag(
-		"monitoring.delta-to-counter", "Treat all metrics of kind DELTA as counters.",
+	monitoringMetricsAggregateDeltas = kingpin.Flag(
+		"monitoring.aggregate-deltas", "Treat all metrics of kind DELTA as counters.",
 	).Default("false").Bool()
 )
 
@@ -195,7 +195,7 @@ func (h *handler) innerHandler(filters map[string]bool) http.Handler {
 			IngestDelay:           *monitoringMetricsIngestDelay,
 			FillMissingLabels:     *collectorFillMissingLabels,
 			DropDelegatedProjects: *monitoringDropDelegatedProjects,
-			DeltaToCounter:        *monitoringMetricsDeltaToCounter,
+			AggregateDeltas:       *monitoringMetricsAggregateDeltas,
 		}, h.logger)
 		if err != nil {
 			level.Error(h.logger).Log("err", err)
