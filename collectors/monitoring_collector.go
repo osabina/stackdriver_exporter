@@ -427,7 +427,6 @@ func (c *MonitoringCollector) reportTimeSeriesMetrics(
 					"metricValue", metricValue, "isNewValue", newValue)
 			} else {
 				metricValue = float64(*newestTSPoint.Value.Int64Value)
-				level.Debug(c.logger).Log("msg", "deltaInt64IsNotCounter", "metric", timeSeries.Metric.Type, "value", metricValue)
 			}
 		case "DOUBLE":
 			if timeSeries.MetricKind == "DELTA" && c.aggregateDeltas {
@@ -449,7 +448,6 @@ func (c *MonitoringCollector) reportTimeSeriesMetrics(
 					"metricValue", metricValue, "isNewValue", newValue)
 			} else {
 				metricValue = float64(*newestTSPoint.Value.DoubleValue)
-				level.Debug(c.logger).Log("msg", "deltaDoubleIsNotCounter", "metric", timeSeries.Metric.Type, "value", metricValue)
 			}
 		case "DISTRIBUTION":
 			dist := newestTSPoint.Value.DistributionValue
