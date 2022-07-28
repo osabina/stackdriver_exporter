@@ -14,7 +14,6 @@
 package collectors
 
 import (
-	//	"fmt"
 	"time"
 
 	"google.golang.org/api/monitoring/v3"
@@ -39,7 +38,7 @@ func GetDistributionEntry(key uint64) *DistributionCacheEntry {
 	}
 	newEntry := DistributionCacheEntry{buckets: &[]int64{}, mean: 0.0, count: 0, ts: time.Time{}}
 	distributionCache[key] = &newEntry
-	return nil
+	return &newEntry
 }
 
 // SetDistributionEntry sets the current cached value for a distribution and returns true
@@ -56,14 +55,14 @@ func SetDistributionEntry(key uint64, dist *monitoring.Distribution, ts time.Tim
 				// Copy entry.buckets and then add in buckets
 				new_buckets = make([]int64, len(*entry.buckets))
 				copy(new_buckets, *entry.buckets)
-				for i, _ := range dist.BucketCounts {
+				for i := range dist.BucketCounts {
 					new_buckets[i] += dist.BucketCounts[i]
 				}
 			} else {
 				// Copy counts and then add in entry.counts
 				new_buckets = make([]int64, len(dist.BucketCounts))
 				copy(new_buckets, dist.BucketCounts)
-				for i, _ := range *entry.buckets {
+				for i := range *entry.buckets {
 					new_buckets[i] += (*entry.buckets)[i]
 				}
 			}
