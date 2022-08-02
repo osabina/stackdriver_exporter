@@ -459,14 +459,6 @@ func (c *MonitoringCollector) reportTimeSeriesMetrics(
 					dist = CacheEntryToDistribution(*cacheEntry, dist)
 				}
 			}
-			// This is useful for examining what dist looks like.
-			//for _, x := range labelValues {
-			//		if x == "epimetheus-sapanpatel" {
-			//			fmt.Printf("metric: %s\n", timeSeries.Metric.Type)
-			//			fmt.Printf("%#v\n", dist)
-			//			fmt.Printf("keys: %s \n values: %s \n\n", labelKeys, labelValues)
-			//		}
-			//	}
 			buckets, err := c.generateHistogramBuckets(dist)
 			if err == nil {
 				timeSeriesMetrics.CollectNewConstHistogram(timeSeries, newestEndTime, labelKeys, dist, buckets, labelValues)
